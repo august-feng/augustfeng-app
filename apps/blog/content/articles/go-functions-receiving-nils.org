@@ -85,7 +85,7 @@ only available to some types and we need to narrow it:
 So, if it's not easy to get determine the ~nil~-ness of a concrete value that's
 passed through an interface, what can we do?
 
-Pass interfaces instead!
+Pass interfaces instead! or if you can remember, the ~nil~ literal itself!
 
 #+begin_src go
   func run(something any) {
@@ -99,5 +99,6 @@ Pass interfaces instead!
   func main() {
   	var r io.Reader
   	run(r) // XXX: r is nil!
+  	run(nil) // XXX: r is nil!
   }
 #+end_src
