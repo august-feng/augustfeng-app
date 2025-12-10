@@ -1,0 +1,103 @@
+#+title: go functions receiving nils
+#+tags[]: go
+#+date: [2025-12-10 Wed]
+
+* About
+
+A few gotchas when using ~nil~ as function arguments in golang.
+
+* Studies
+
+The zero value of a slice is ~nil~:
+
+#+begin_src go
+  var s []string
+  if s == nil {
+  	fmt.Println("s is nil!") // XXX: we will see this printed.
+  }
+#+end_src
+
+However, when ~s~ is passed to a function that accepts an interface, then it is
+no longer true!
+
+#+begin_src go
+  func run(something any) {
+  	if something == nil {
+  		fmt.Println("something is nil!")
+  	} else {
+  		fmt.Println("something is not nil!")
+  	}
+  }
+
+  func main() {
+  	var s []string
+  	run(s) // XXX: s is not nil!
+
+#+end_src
+
+This is because in ~any~ is an interface, and a comparison operation on an
+interface compares two things: the interface's type, and the interface's value.
+
+The ~s~ object is concrete, but it becomes an interface once receivec by the
+function.
+
+Inside the function execution, it has a ~[]string~ type and a ~nil~ value.
+
+#+begin_src go
+  func run(something any) {
+  	t := reflect.TypeOf(something)
+  	v := reflect.TypeOf(something)
+  	fmt.Printf("something is type: %s\n", t)
+  	fmt.Printf("something has value: %s\n", t)
+  }
+
+
+  func main() {
+  	var s []string
+  	run(s) // XXX: s is type: []string, s has value: []
+  }
+#+end_src
+
+Strange! We would think s has nil value? The ~nil~-ness (is this a word?) is
+only available to some types and we need to narrow it:
+
+#+begin_src go
+  func run(something any) {
+  	v := reflect.TypeOf(something)
+  	switch val.Kind() {
+    case reflect.Pointer, reflect.Slice, reflect.Map, reflect.Chan, reflect.Interface, reflect.Func:
+    	if val.IsNil() {
+    		fmt.Println("something is nil.")
+    	} else {
+    		fmt.Println("somethingis not nil")
+    	}
+    }
+  }
+
+  func main() {
+  	var s []string
+  	run(s) // XXX: s is nil.
+  }
+#+end_src
+
+* Solution
+
+So, if it's not easy to get determine the ~nil~-ness of a concrete value that's
+passed through an interface, what can we do?
+
+Pass interfaces instead!
+
+#+begin_src go
+  func run(something any) {
+  	if something == nil {
+  		fmt.Println("something is nil!")
+  	} else {
+  		fmt.Println("something is not nil!")
+  	}
+  }
+
+  func main() {
+  	var r io.Reader
+  	run(r) // XXX: r is nil!
+  }
+#+end_src
