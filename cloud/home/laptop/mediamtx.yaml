@@ -1,0 +1,28 @@
+---
+- name: mediamtx
+  hosts: laptop2022
+  become: true
+  tasks:
+    - name: Download and extract mediamtx binary from URL
+      ansible.builtin.unarchive:
+        src: "https://github.com/bluenviron/mediamtx/releases/download/v1.12.2/mediamtx_v1.12.2_linux_amd64.tar.gz"
+        dest: "/usr/local/bin/"
+        remote_src: yes
+    - name: mediamtx.service
+      ansible.builtin.copy:
+        src: mediamtx/mediamtx.service
+        dest: /etc/systemd/system/mediamtx.service
+    - name: mediamtx.yml
+      ansible.builtin.copy:
+        src: mediamtx/mediamtx.yml
+        dest: /usr/local/etc/mediamtx.yml
+      notify: mediamtx
+    - name: mediamtx
+      ansible.builtin.systemd_service:
+        state: started
+        name: mediamtx
+  handlers:
+    - name: mediamtx
+      ansible.builtin.systemd_service:
+        state: restarted
+        name: mediamtx

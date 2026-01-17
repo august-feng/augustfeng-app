@@ -1,0 +1,50 @@
+- name: disk
+  hosts: laptop2022
+  become: true
+  tasks:
+    - name: photus
+      ansible.posix.mount:
+        path: /media/photus
+        src: LABEL=photus
+        fstype: exfat
+        opts: uid=augustfeng,gid=augustfeng
+        state: mounted
+    - name: t7
+      ansible.posix.mount:
+        path: /media/T7
+        src: LABEL=T7 Shield
+        fstype: exfat
+        state: mounted
+      ignore_errors: true
+- name: samba
+  hosts: laptop2022
+  become: true
+  tasks:
+    - name: install
+      ansible.builtin.apt:
+        name: samba
+        state: present
+    - name: smb.conf
+      community.general.ini_file:
+        path: /etc/samba/smb.conf
+        section: T7
+        option: path
+        value: /media/T7
+    - name: smb.conf
+      community.general.ini_file:
+        path: /etc/samba/smb.conf
+        section: T7
+        option: read_only
+        value: no
+    - name: smb.conf
+      community.general.ini_file:
+        path: /etc/samba/smb.conf
+        section: T7
+        option: browsable
+        value: yes
+  handlers:
+    - name: smbd
+      ansible.builtin.systemd_service:
+        state: restarted
+        name: smbd
+

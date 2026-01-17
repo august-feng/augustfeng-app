@@ -1,0 +1,54 @@
+- name: docker - gpg
+  hosts: laptop2022
+  become: true
+  tasks:
+    - name: Install prerequisites
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+    - name: Add Docker GPG key
+      ansible.builtin.get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/trusted.gpg.d/docker.asc
+        mode: '0644'
+- name: docker
+  hosts: laptop2022
+  become: true
+  tasks:
+    - name: Add Docker repository
+      ansible.builtin.deb822_repository:
+        name: docker
+        types: [deb]
+        uris: https://download.docker.com/linux/ubuntu
+        suites: ["{{ ansible_distribution_release }}"]
+        components: [stable]
+        architectures: [amd64]
+        signed_by: /etc/apt/trusted.gpg.d/docker.asc
+        state: present
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+    - name: Install Docker packages
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: augustfeng
+        groups: docker
+        append: yes
+    - name: Enable docker service
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+    - name: Start docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started

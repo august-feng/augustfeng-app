@@ -1,0 +1,21 @@
+- name: compilers
+  hosts: raspberrypi4
+  become: true
+  tasks:
+    - name: Install cargo
+      ansible.builtin.apt:
+        name: cargo
+        state: present
+    - name: Install elm-compiler
+      ansible.builtin.apt:
+        name: elm-compiler
+        state: present
+
+- name: lib dependencies
+  hosts: raspberrypi4
+  become: true
+  tasks:
+    - name: Install libssl-dev
+      ansible.builtin.apt:
+        name: libssl-dev
+        state: present

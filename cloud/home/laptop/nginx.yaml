@@ -1,5 +1,5 @@
 - name: nginx
-  hosts: all
+  hosts: laptop2022
   become: true
   tasks:
     - name: install

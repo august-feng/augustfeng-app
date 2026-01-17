@@ -1,5 +1,5 @@
 - name: gui
-  hosts: all
+  hosts: laptop2022
   become: true
   tasks:
     - name: install
@@ -14,7 +14,7 @@
         src: user/sway.conf
         dest: /etc/sway/config.d/augustfeng.conf
 - name: emacs
-  hosts: all
+  hosts: laptop2022
   become: true
   tasks:
     - name: install

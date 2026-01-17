@@ -1,0 +1,102 @@
+* laptop2022
+** Services
+*** transmission
+
+The transmission daemon is installed with ~sudo apt install
+transmission-daemon~.
+
+The transmission daemon uses basic authentication and the default credentials is
+transmission/transmission.
+
+In order to allow services to hit its api from the outside, we need add some ip
+addresses in the ~/etc/transmission-daemon/settings.json~:
+
+#+begin_src json
+  {
+      "rpc-whitelist": "127.0.0.1,192.168.1.*"
+  }
+#+end_src
+
+*** sonarr
+
+The Sonarr service is installed using an online shell script:
+- The user is intentionally created without a home directory.
+- The script has a concept of data directory (default: /var/lib/sonarr) and it
+  should not be confused for media directory; it is used for the application's
+  database.
+
+Once installed, a ~root folder~ should be created and configured in Sonarr.
+Sonarr will need read and write permissions on the root folders so that it can
+use it as destination to import media after its been downloaded (or imported).
+
+We'll also need to configure some indexers and download clients (sabnzbdplus).
+
+*** jellyfin
+
+The Jellyfin service is installed with ~apt~ and the debian package is hosted on
+a debian repository managed by jellyfin.
+
+The service has a *Data directory* (default: /var/lib/jellyfin) and it should
+not be confused for media directory; it is used for the application's database.
+
+*** mediamtx
+
+The mediamtx service is installed by downloading the binaries from the project's
+github releases and creating the systemd unit file.
+
+*** sabnzbdplus
+
+The sabnzbdplus service is installed with ~apt~ and the debian package is hosted
+on an unofficial debian repository (ppa:jcfp/nobetas).
+
+** [2025-06-12 Thu]
+*** Fix permissions on sabnzbdplus's Download folder
+
+#+begin_src
+  chmod 755 Downloads
+#+end_src
+
+*** Fix permissions on sabnzbdplus's Download's complete incomplete folder
+
+#+begin_src
+  chmod 755 Downloads/{complete,incomplete}
+#+end_src
+
+** [2025-06-13 Fri]
+*** Fix permission for completed downloads
+
+Go into sabnzbdplus's UI and edit the permissions for completed downloads
+to 755. Try this first next time before doing the chmods above.
+
+*** Fix permission for transmission's completed downloads
+
+Change ~/etc/transmission-daemon/settings.json~'s umask to 002 so that the group
+can also delete.
+
+Be sure to stop the transmission daemon when editing.
+
+https://askubuntu.com/a/738118
+* raspberrypi4
+** initial configuration
+
+Configure the user. (this isn't used anymore actually)
+
+#+begin_src shell
+  # on pi
+  useradd -m augustfeng
+  sudo visudo # augustfeng ALL=(ALL) NOPASSWD: ALL
+
+ # this is required by `ansible.builtin.deb822_repository`, and could probably be included as a prerequisite.
+  sudo apt install python3-debian
+
+  # on laptop
+  ssh-copy-id raspberrypi4
+#+end_src
+
+** Services
+*** syncthing
+
+#+begin_src shell
+  syncthing cli config gui raw-address set 0.0.0.0:8384
+  systemctl restart syncthing@augustfeng.service
+#+end_src

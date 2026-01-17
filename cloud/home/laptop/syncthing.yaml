@@ -1,5 +1,5 @@
 - name: syncthing - gpg
-  hosts: all
+  hosts: laptop2022
   become: true
   tasks:
     - name: asc
@@ -8,7 +8,7 @@
         dest: /etc/apt/trusted.gpg.d/syncthing.gpg
         mode: '0644'
 - name: syncthing
-  hosts: all
+  hosts: laptop2022
   become: true
   tasks:
     - name: Add Syncthing repository

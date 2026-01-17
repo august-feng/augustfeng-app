@@ -1,0 +1,44 @@
+---
+- name: gpg
+  hosts: laptop2022
+  become: true
+  tasks:
+    - name: asc
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /etc/apt/trusted.gpg.d/hashicorp.asc
+        mode: '0644'
+      notify: dearmor
+  handlers:
+    - name: dearmor
+      ansible.builtin.command:
+        cmd: gpg --dearmor --output /etc/apt/trusted.gpg.d/hashicorp.gpg /etc/apt/trusted.gpg.d/hashicorp.asc
+- name: apt
+  hosts: laptop2022
+  become: true
+  tasks:
+    - name: Add hashicorp deb822 repository
+      ansible.builtin.deb822_repository:
+        name: hashicorp
+        types: [deb]
+        uris: https://apt.releases.hashicorp.com
+        suites: [noble]
+        components: [main]
+        architectures: [amd64]
+        signed_by: /etc/apt/trusted.gpg.d/hashicorp.gpg
+        state: present
+- name: vault
+  hosts: laptop2022
+  become: true
+  tasks:
+    - name: udpate
+      ansible.builtin.apt:
+        update_cache: yes
+    - name: install
+      ansible.builtin.apt:
+        name: vault
+        state: present
+    - name: systemd
+      ansible.builtin.systemd_service:
+        state: started
+        name: vault
